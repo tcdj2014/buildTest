@@ -61,9 +61,18 @@ jobs:
 
             -   name: Rename binary
                 run: |
-                    BIN=$(ls build/native/nativeCompile)
-                    mv build/native/nativeCompile/$BIN \
-                       build/native/nativeCompile/${BIN}-${{ matrix.artifact }}
+                    # Find the executable file in the native compile output directory
+                    EXECUTABLE_PATH=$(find build/native/nativeCompile -type f -executable | head -n 1)
+                    if [ -z "$EXECUTABLE_PATH" ]; then
+                      echo "Error: No executable found in build/native/nativeCompile"
+                      ls -la build/native/nativeCompile
+                      exit 1
+                    fi
+                    EXECUTABLE_NAME=$(basename "$EXECUTABLE_PATH")
+                    NEW_NAME="${EXECUTABLE_NAME}-${{ matrix.artifact }}"
+                    echo "Renaming $EXECUTABLE_NAME to $NEW_NAME"
+                    mv "$EXECUTABLE_PATH" "build/native/nativeCompile/$NEW_NAME"
+                    echo "Successfully renamed executable"
 
             -   name: Upload artifact
                 uses: actions/upload-artifact@v4
