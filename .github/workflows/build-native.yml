@@ -1,46 +1,46 @@
-name: Build Native Application
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch: # 允许手动触发
-
-jobs:
-  build-native:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up GraalVM
-      uses: graalvm/setup-graalvm@v1
-      with:
-        java-version: '21'
-        distribution: 'graalvm'
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Make build scripts executable
-      run: |
-        chmod +x ./gradlew
-        chmod +x ./buildNativeAction.sh
-
-    - name: Build native application
-      run: |
-        ./buildNativeAction.sh
-
-    - name: Determine executable name
-      id: executable
-      run: |
-        EXECUTABLE_NAME=$(find build/native/nativeCompile -type f -executable | head -n 1 | xargs basename)
-        echo "executable_name=$EXECUTABLE_NAME" >> $GITHUB_OUTPUT
-        echo "Executable name: $EXECUTABLE_NAME"
-
-    - name: Upload native executable as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: native-executable-${{ runner.os }}
-        path: build/native/nativeCompile/${{ steps.executable.outputs.executable_name }}
-        if-no-files-found: error
+# name: Build Native Application
+#
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
+#   workflow_dispatch: # 允许手动触发
+#
+# jobs:
+#   build-native:
+#     runs-on: ubuntu-latest
+#
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v4
+#
+#     - name: Set up GraalVM
+#       uses: graalvm/setup-graalvm@v1
+#       with:
+#         java-version: '21'
+#         distribution: 'graalvm'
+#         github-token: ${{ secrets.GITHUB_TOKEN }}
+#
+#     - name: Make build scripts executable
+#       run: |
+#         chmod +x ./gradlew
+#         chmod +x ./buildNativeAction.sh
+#
+#     - name: Build native application
+#       run: |
+#         ./buildNativeAction.sh
+#
+#     - name: Determine executable name
+#       id: executable
+#       run: |
+#         EXECUTABLE_NAME=$(find build/native/nativeCompile -type f -executable | head -n 1 | xargs basename)
+#         echo "executable_name=$EXECUTABLE_NAME" >> $GITHUB_OUTPUT
+#         echo "Executable name: $EXECUTABLE_NAME"
+#
+#     - name: Upload native executable as artifact
+#       uses: actions/upload-artifact@v4
+#       with:
+#         name: native-executable-${{ runner.os }}
+#         path: build/native/nativeCompile/${{ steps.executable.outputs.executable_name }}
+#         if-no-files-found: error
