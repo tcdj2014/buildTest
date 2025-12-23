@@ -1,0 +1,2 @@
+org.hibernate.bytecode.internal.bytebuddy.BytecodeProviderImpl
+org.hibernate.bytecode.internal.javassist.BytecodeProviderImpl

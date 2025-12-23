@@ -1,0 +1,29 @@
+[
+  {
+    "name": "io.netty.util.internal.shaded.org.jctools.queues.unpadded.MpscUnpaddedArrayQueue",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": ["int"]
+      }
+    ]
+  },
+  {
+    "name": "io.netty.util.internal.NativeLibraryUtil",
+    "methods": [
+      {
+        "name": "loadLibrary",
+        "parameterTypes": ["java.lang.String", "java.lang.Class"]
+      }
+    ]
+  },
+  {
+    "name": "io.netty.util.internal.NativeLibraryLoader$1",
+    "methods": [
+      {
+        "name": "run",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

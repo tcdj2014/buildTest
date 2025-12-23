@@ -1,0 +1,81 @@
+name: Release Native Application
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-native:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up GraalVM
+      uses: graalvm/setup-graalvm@v1
+      with:
+        java-version: '21'
+        distribution: 'graalvm'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Make build scripts executable
+      run: |
+        chmod +x ./gradlew
+        chmod +x ./buildNativeAction.sh
+
+    - name: Build native application
+      run: |
+        echo "Building with parallel threads..."
+        ./buildNativeAction.sh
+
+    - name: Determine executable name
+      id: executable
+      run: |
+        EXECUTABLE_NAME=$(find build/native/nativeCompile -type f -executable | head -n 1 | xargs basename)
+        echo "executable_name=$EXECUTABLE_NAME" >> $GITHUB_OUTPUT
+        echo "Executable name: $EXECUTABLE_NAME"
+
+    - name: Upload native executable as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: native-executable
+        path: build/native/nativeCompile/${{ steps.executable.outputs.executable_name }}
+        if-no-files-found: error
+
+  release:
+    needs: build-native
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download native executable
+      uses: actions/download-artifact@v4
+      with:
+        name: native-executable
+        path: ./downloaded
+
+    - name: List downloaded files
+      run: ls -la ./downloaded
+
+    - name: Get executable name
+      id: executable
+      run: |
+        EXECUTABLE_NAME=$(ls ./downloaded/ | head -n 1)
+        echo "executable_name=$EXECUTABLE_NAME" >> $GITHUB_OUTPUT
+        echo "Executable name: $EXECUTABLE_NAME"
+
+    - name: Create Release and Upload Release Asset
+      uses: softprops/action-gh-release@v2
+      with:
+        name: Release ${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+        generate_release_notes: true
+        files: ./downloaded/${{ steps.executable.outputs.executable_name }}
+        draft: false
+        prerelease: false

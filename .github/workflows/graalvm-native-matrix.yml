@@ -1,0 +1,83 @@
+# name: graalvm-native-matrix
+#
+# on:
+#     push:
+#         branches: [ "main" ]
+#     pull_request:
+#
+# jobs:
+#     native:
+#         strategy:
+#             fail-fast: false
+#             matrix:
+#                 include:
+#                     # macOS ARM
+#                     -   os: macos-15
+#                         arch: arm64
+#                         artifact: macos-arm64
+#
+#                     # macOS Intel
+#                     -   os: macOS-15
+#                         arch: x86_64
+#                         artifact: macos-x86_64
+#
+#                     # # Linux ARM
+#                     # -   os: ubuntu-22.04-arm
+#                     #     arch: arm64
+#                     #     artifact: linux-arm64
+#
+#                     # Linux x86
+#                     -   os: ubuntu-latest
+#                         arch: x86_64
+#                         artifact: linux-x86_64
+#
+#         runs-on: ${{ matrix.os }}
+#
+#         env:
+#             # 🚀 GraalVM 内存
+#             GRAALVM_OPTS: "-J-Xms2g -J-Xmx10g"
+#
+#             # 🚀 Gradle 并行
+#             GRADLE_OPTS: >
+#                 -Dorg.gradle.daemon=false
+#                 -Dorg.gradle.parallel=true
+#                 -Dorg.gradle.workers.max=8
+#
+#         steps:
+#             -   name: Checkout
+#                 uses: actions/checkout@v4
+#
+#             -   name: Setup GraalVM JDK 21
+#                 uses: graalvm/setup-graalvm@v1
+#                 with:
+#                     distribution: 'graalvm'
+#                     java-version: '21'
+#                     github-token: ${{ secrets.GITHUB_TOKEN }}
+#                     cache: gradle
+#
+#             -   name: Verify environment
+#                 run: |
+#                     uname -a
+#                     java -version
+#                     native-image --version
+#
+#             -   name: Grant gradlew permission
+#                 run: chmod +x gradlew
+#
+#             -   name: Native compile
+#                 run: |
+#                     ./gradlew nativeCompile \
+#                       --no-daemon \
+#                       --max-workers=8
+#
+#             -   name: Rename binary
+#                 run: |
+#                     BIN=$(ls build/native/nativeCompile)
+#                     mv build/native/nativeCompile/$BIN \
+#                        build/native/nativeCompile/${BIN}-${{ matrix.artifact }}
+#
+#             -   name: Upload artifact
+#                 uses: actions/upload-artifact@v4
+#                 with:
+#                     name: ${{ matrix.artifact }}
+#                     path: build/native/nativeCompile/*

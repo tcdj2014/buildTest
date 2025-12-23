@@ -1,0 +1,58 @@
+server:
+    shutdown: graceful
+spring:
+    lifecycle:
+        timeout-per-shutdown-phase: 300s
+    application:
+        name: prod
+    rabbitmq:
+        host: ${RABBITMQ_HOST}
+        port: ${RABBITMQ_PORT}
+        username: ${RABBITMQ_USERNAME}
+        password: ${RABBITMQ_PASSWORD}
+        virtual-host: test
+        listener:
+            simple:
+                acknowledge-mode: auto
+                concurrency: 1
+                max-concurrency: 10
+                prefetch: 1
+        template:
+            retry:
+                enabled: true
+                initial-interval: 2000
+                multiplier: 2
+                max-attempts: 3
+    datasource:
+        url: ${MYSQL_URL}
+        username: ${MYSQL_USERNAME}
+        password: ${MYSQL_PASSWORD}
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        hikari:
+            connection-timeout: 20000
+            minimum-idle: 5
+            maximum-pool-size: 12
+            idle-timeout: 300000
+            max-lifetime: 1200000
+            leak-detection-threshold: 60000
+    data:
+        mongodb:
+            uri: mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DATABASE}?authSource=admin
+        redis:
+            host: ${REDIS_HOST}
+            password: ${REDIS_PASSWORD}
+            port: ${REDIS_PORT}
+            timeout: ${REDIS_TIMEOUT}
+            lettuce:
+                pool:
+                    enabled: true
+                    max-active: ${REDIS_MAX_ACTIVE}
+                    max-idle: ${REDIS_MAX_IDLE}
+                    min-idle: ${REDIS_MIN_IDLE}
+                    max-wait: ${REDIS_MAX_WAIT}
+                shutdown-timeout: ${REDIS_SHUTDOWN_TIMEOUT}
+
+logging:
+    level:
+        com.txm.test: INFO
+        org.springframework: INFO

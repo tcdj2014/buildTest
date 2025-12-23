@@ -1,0 +1,114 @@
+name: Build Native Cross-Platform
+
+on:
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  build-native-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up GraalVM
+      uses: graalvm/setup-graalvm@v1
+      with:
+        java-version: '21'
+        distribution: 'graalvm'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Make build scripts executable
+      run: |
+        chmod +x ./gradlew
+        chmod +x ./buildNativeAction.sh
+
+    - name: Build native application (Linux)
+      run: |
+        ./buildNativeAction.sh
+
+    - name: Determine executable name
+      id: executable
+      run: |
+        EXECUTABLE_NAME=$(find build/native/nativeCompile -type f -executable | head -n 1 | xargs basename)
+        echo "executable_name=$EXECUTABLE_NAME" >> $GITHUB_OUTPUT
+        echo "Executable name: $EXECUTABLE_NAME"
+
+    - name: Upload native executable as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: native-executable-linux
+        path: build/native/nativeCompile/${{ steps.executable.outputs.executable_name }}
+        if-no-files-found: error
+
+  build-native-windows:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up GraalVM
+      uses: graalvm/setup-graalvm@v1
+      with:
+        java-version: '21'
+        distribution: 'graalvm'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '9.2.0'
+
+    - name: Build native application (Windows)
+      run: |
+        ./gradlew nativeCompile --no-daemon --info
+
+    - name: Find executable
+      id: executable
+      run: |
+        $exePath = Get-ChildItem -Path build\native\nativeCompile -File | Select-Object -First 1
+        $exeName = $exePath.Name
+        echo "executable_name=$exeName" >> $env:GITHUB_OUTPUT
+        echo "Executable name: $exeName"
+
+    - name: Upload native executable as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: native-executable-windows
+        path: build\native\nativeCompile\${{ steps.executable.outputs.executable_name }}
+        if-no-files-found: error
+
+  build-native-macos:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up GraalVM
+      uses: graalvm/setup-graalvm@v1
+      with:
+        java-version: '21'
+        distribution: 'graalvm'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '9.2.0'
+
+    - name: Build native application (macOS)
+      run: |
+        ./gradlew nativeCompile --no-daemon --info
+
+    - name: Determine executable name
+      id: executable
+      run: |
+        EXECUTABLE_NAME=$(find build/native/nativeCompile -type f -name "*[^.dll]*" | head -n 1 | xargs basename)
+        echo "executable_name=$EXECUTABLE_NAME" >> $GITHUB_OUTPUT
+        echo "Executable name: $EXECUTABLE_NAME"
+
+    - name: Upload native executable as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: native-executable-macos
+        path: build/native/nativeCompile/${{ steps.executable.outputs.executable_name }}
+        if-no-files-found: error
