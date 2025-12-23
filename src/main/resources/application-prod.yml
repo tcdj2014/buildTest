@@ -1,6 +1,12 @@
 server:
     shutdown: graceful
 spring:
+    jpa:
+        open-in-view: false
+        properties:
+            hibernate:
+                bytecode:
+                    provider: none
     lifecycle:
         timeout-per-shutdown-phase: 300s
     application:

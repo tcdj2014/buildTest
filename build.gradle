@@ -6,14 +6,14 @@ plugins {
     id 'org.graalvm.buildtools.native' version '0.10.3'
 }
 
-graalvmNative {
-    binaries {
-        main {
-            buildArgs.add('-R:MaxHeapSize=512m')
-            buildArgs.add('-R:MinHeapSize=128m')
-        }
-    }
-}
+// graalvmNative {
+//     binaries {
+//         main {
+//             buildArgs.add('-R:MaxHeapSize=512m')
+//             buildArgs.add('-R:MinHeapSize=128m')
+//         }
+//     }
+// }
 
 group = 'com.txm'
 version = '0.0.1-SNAPSHOT'
